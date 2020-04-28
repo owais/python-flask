@@ -111,7 +111,6 @@ class TestTracing(unittest.TestCase):
             tags.HTTP_METHOD: 'GET',
             tags.SPAN_KIND: tags.SPAN_KIND_RPC_SERVER,
             tags.HTTP_URL: 'http://localhost/another_test_simple',
-            'is_xhr': 'False',
         }
 
     def test_requests_distinct(self):
@@ -196,14 +195,10 @@ class TestTracing(unittest.TestCase):
         self._verify_error(spans[0])
 
     def _verify_error(self, span):
-        assert span.tags.get(tags.ERROR) is True
-
-        assert len(span.logs) == 1
-        assert span.logs[0].key_values.get('event', None) is tags.ERROR
-        assert isinstance(
-                span.logs[0].key_values.get('error.object', None),
-                RuntimeError
-        )
+        assert span.tags.get(tags.ERROR, None) is True
+        assert span.tags.get('sfx.error.message', None) == 'Should not happen' 
+        assert span.tags.get('sfx.error.kind', None) == 'RuntimeError' 
+        assert span.tags.get('sfx.error.object', None) == '<class \'RuntimeError\'>' 
 
     def test_over_wire(self):
         rv = test_app.get('/wire')
